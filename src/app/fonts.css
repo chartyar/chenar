@@ -1,31 +1,31 @@
 @font-face {
     font-family: 'Vazirmatn';
-    src: url('/public/fonts/vazirmatn/webfonts/Vazirmatn-Regular.woff2') format('woff2'),
-         url('/public/fonts/vazirmatn/ttf/Vazirmatn-Regular.ttf') format('truetype');
+    src: url('/fonts/vazirmatn/webfonts/Vazirmatn-Regular.woff2') format('woff2'),
+         url('/fonts/vazirmatn/ttf/Vazirmatn-Regular.ttf') format('truetype');
     font-weight: 400; /* Regular */
     font-style: normal;
   }
   
   @font-face {
     font-family: 'Vazirmatn';
-    src: url('/public/fonts/vazirmatn/webfonts/Vazirmatn-Medium.woff2') format('woff2'),
-         url('/public/fonts/vazirmatn/ttf/Vazirmatn-Medium.ttf') format('truetype');
+    src: url('/fonts/vazirmatn/webfonts/Vazirmatn-Medium.woff2') format('woff2'),
+         url('/fonts/vazirmatn/ttf/Vazirmatn-Medium.ttf') format('truetype');
     font-weight: 500; /* Medium */
     font-style: normal;
   }
   
   @font-face {
     font-family: 'Vazirmatn';
-    src: url('/public/fonts/vazirmatn/webfonts/Vazirmatn-SemiBold.woff2') format('woff2'),
-         url('/public/fonts/vazirmatn/ttf/Vazirmatn-SemiBold.ttf') format('truetype');
+    src: url('/fonts/vazirmatn/webfonts/Vazirmatn-SemiBold.woff2') format('woff2'),
+         url('/fonts/vazirmatn/ttf/Vazirmatn-SemiBold.ttf') format('truetype');
     font-weight: 600; /* SemiBold */
     font-style: normal;
   }
   
   @font-face {
     font-family: 'Vazirmatn';
-    src: url('/public/fonts/vazirmatn/webfonts/Vazirmatn-Bold.woff2') format('woff2'),
-         url('/public/fonts/vazirmatn/ttf/Vazirmatn-Bold.ttf') format('truetype');
+    src: url('/fonts/vazirmatn/webfonts/Vazirmatn-Bold.woff2') format('woff2'),
+         url('/fonts/vazirmatn/ttf/Vazirmatn-Bold.ttf') format('truetype');
     font-weight: 700; /* Bold */
     font-style: normal;
   }

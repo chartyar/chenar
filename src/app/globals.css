@@ -4,4 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
-
+.body{
+    direction: rtl;
+}
+*,*::before,*::after{
+    font-family:"Vazirmatn" ;
+}

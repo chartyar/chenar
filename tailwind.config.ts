@@ -80,7 +80,7 @@ const config: Config = {
           900:'#F0FDD4',
           950:'#F0FDD4'
         },
-        red:{
+        error:{
           50:'#FEF2F2',
           100:'#FEE2E2',
           200:'#FECACA',
@@ -169,6 +169,13 @@ const config: Config = {
         },
         ".weight-regular": {
           fontWeight: "400",
+        },
+        ".link":{
+          fontSize: "12px",
+          lineHeight: "18px",
+          color:"#0074EF",
+          textDecoration:"underline",
+          textUnderlineOffset: "4px"
         }
       };
 
