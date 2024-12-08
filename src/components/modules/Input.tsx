@@ -8,13 +8,29 @@ interface InputProps {
   id?: string;
   placeholder?:string;
   error?:FieldError;
+  hint?:string | undefined;
+  icons?:React.ReactNode[]|undefined;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
-  const { type, label, id,error, placeholder,...restProps} = props;
+  const { type, label, id,error, placeholder,icons,hint,...restProps} = props;
+
+  const[showPassword,setShowPassword] = React.useState<boolean>(false)
+  const[inputType,setInputType] = React.useState(type)
+
+
+  const togglePassword = ()=>{
+    if(showPassword){
+      setShowPassword(false)
+      setInputType("password")
+    }else{
+      setShowPassword(true)
+      setInputType("text")
+    }
+  }
 
   return (
-    <div className="group">
+    <div className="group relative">
       {label && (
         <label htmlFor={id} className="mb-1 mt-2 block">
           {label}
@@ -23,8 +39,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
 
       <input 
        id={id}
-       type={type} 
-       className={`w-full p-3 bg-dark-900 outline-none rounded-lg
+       type={inputType} 
+       className={`w-full py-3 pr-3 pl-10 bg-dark-900 outline-none rounded-lg
         text-dark-300 placeholder:text-dark-500
         focus:border-primary-700 focus:border-[2px]
         ${error ? "border border-error-600" : "border-none"}`}
@@ -32,7 +48,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
        placeholder={placeholder}
        {...restProps}
        />
-      {error && <span className="size-caption-sm text-error-600">{error.message}</span>}
+      {error && <span className="size-caption-sm text-error-600">{error.message}</span>}  
+      {hint && !error && <span className="size-caption-sm text-dark-500">{hint}</span>}
+      {
+        type==="password" && icons && (
+          <span onClick={togglePassword}
+          className="absolute left-2 top-3 w-6 h-6 cursor-pointer">
+            {!showPassword ? icons[0] : icons[1]}
+          </span>
+        )
+      }
     </div>
   );
 });

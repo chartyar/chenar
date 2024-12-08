@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import CountdownTimer from "@/components/modules/Countdown";
 import OTPInput from "@/components/modules/OtpInput";
+import { AiOutlineEye,AiOutlineEyeInvisible } from "react-icons/ai";
 
 const mobileSchema = yup.object({
   mobile: yup
@@ -18,34 +19,40 @@ const mobileSchema = yup.object({
 const nameSchema = yup.object({
   firstName: yup
     .string()
-    .min(3, "نام باید حداقل 3 حرف باشد") // حداقل 3 حرف برای نام
-    .matches(/^[\u0600-\u06FF\s]+$/, "فقط حروف فارسی مجاز است") // فقط حروف فارسی و فاصله مجاز است
+    .min(3, "نام باید حداقل ۳ حرف باشد")
+    .matches(/^[\u0600-\u06FF\s]+$/, "فقط حروف فارسی مجاز است")
     .required("نام الزامی است"),
   lastName: yup
     .string()
-    .min(3, "نام خانوادگی باید حداقل 3 حرف باشد") // حداقل 3 حرف برای نام خانوادگی
-    .matches(/^[\u0600-\u06FF\s]+$/, "فقط حروف فارسی مجاز است") // فقط حروف فارسی و فاصله مجاز است
+    .min(3, "نام خانوادگی باید حداقل ۳ حرف باشد")
+    .matches(/^[\u0600-\u06FF\s]+$/, "فقط حروف فارسی مجاز است")
     .required("نام خانوادگی الزامی است"),
 });
 
 const passwordSchema = yup.object({
   password: yup
     .string()
-    .min(8, "رمز عبور باید حداقل 8 کاراکتر باشد") // حداقل 8 کاراکتر
+    .min(8, "رمز عبور باید حداقل ۸ کاراکتر باشد")
     .matches(
       /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/,
       "رمز عبور باید شامل حروف و اعداد انگلیسی باشد"
-    ) // شامل حروف و اعداد
-    .required("رمز عبور الزامی است"), // الزامی بودن رمز عبور
+    )
+    .required("رمز عبور الزامی است"),
 
   confirmPassword: yup
     .string()
-    .oneOf([yup.ref("password")], "رمز عبور و تایید آن باید یکسان باشد") // تایید رمز عبور
-    .required("تایید رمز عبور الزامی است"), // الزامی بودن تایید رمز عبور
+    .oneOf([yup.ref("password")], "رمز عبور و تکرار آن باید یکسان باشد")
+    .required("تایید رمز عبور الزامی است"),
 
-  terms: yup
-    .boolean()
-    .required("پذیرش شرایط و قوانین الزامی است"), // الزامی بودن پذیرش شرایط و قوانین
+  referralCode: yup
+    .string()
+    .optional()
+    .test('is-5-digits', 'کد معرف باید یک عدد ۵ رقمی باشد', (value) => {
+      if (!value) return true; 
+      return /^\d{5}$/.test(value);
+    }),
+
+  terms: yup.boolean().required("پذیرش شرایط و قوانین الزامی است"),
 });
 
 type MobileInput = yup.InferType<typeof mobileSchema>;
@@ -54,7 +61,6 @@ type PasswordInput = yup.InferType<typeof passwordSchema>;
 
 export default function RegisterPage() {
   const [status, setStatus] = useState<string>("mobileForm");
-
 
   const {
     handleSubmit: handleUserMobileSubmit,
@@ -143,13 +149,13 @@ export default function RegisterPage() {
           </h2>
           <div className="flex justify-between items-center weight-regular size-caption-sm">
             <span className="text-dark-300">
-              به شماره <span className="text-primary-600">۰۹۱۰۰۳۳۲۲۰۲</span>{" "}
+              به شماره <span className="text-primary-600">۰۹۱۰۰۳۳۲۲۰۲</span>
               فرستاده شد
             </span>
             <span className="text-dark-500">
               <span className="text-dark-300">
                 <CountdownTimer initialSeconds={60} />
-              </span>{" "}
+              </span>
               تا ارسال مجدد کد تایید
             </span>
           </div>
@@ -245,6 +251,7 @@ export default function RegisterPage() {
                   placeholder="رمزعبور خود را وارد کنید"
                   {...field}
                   error={passwordErrors.password}
+                  icons={[<AiOutlineEye className="w-6 h-6 fill-dark-400"/>,<AiOutlineEyeInvisible  className="w-6 h-6 fill-dark-400"/>]}
                 />
               )}
             />
@@ -259,10 +266,25 @@ export default function RegisterPage() {
                   placeholder="تکرار رمزعبور خود را وارد کنید"
                   {...field}
                   error={passwordErrors.confirmPassword}
+                  icons={[<AiOutlineEye className="w-6 h-6 fill-dark-400"/>,<AiOutlineEyeInvisible  className="w-6 h-6 fill-dark-400"/>]}
                 />
               )}
             />
 
+            <Controller
+              name="referralCode"
+              control={passwordControl}
+              defaultValue=""
+              render={({ field }) => (
+                <Input
+                  type="text"
+                  placeholder="کد معرف خود را وارد کنید"
+                  {...field}
+                  error={passwordErrors.referralCode}
+                  hint="در صورتی که کد معرف دارید وارد کنید"
+                />
+              )}
+            />
 
             <button
               type="submit"

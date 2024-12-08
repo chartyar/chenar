@@ -5,8 +5,7 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import CountdownTimer from "@/components/modules/Countdown";
-import OTPInput from "@/components/modules/OtpInput";
+import { AiOutlineEye,AiOutlineEyeInvisible } from "react-icons/ai";
 
 const mobileSchema = yup.object({
   mobile: yup
@@ -18,12 +17,12 @@ const mobileSchema = yup.object({
 const passwordSchema = yup.object({
   password: yup
     .string()
-    .min(8, "رمز عبور باید حداقل 8 کاراکتر باشد") // حداقل 8 کاراکتر
+    .min(8, "رمز عبور باید حداقل۸ کاراکتر باشد") 
     .matches(
       /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/,
       "رمز عبور باید شامل حروف و اعداد انگلیسی باشد"
-    ) // شامل حروف و اعداد
-    .required("رمز عبور الزامی است"), // الزامی بودن رمز عبور
+    ) 
+    .required("رمز عبور الزامی است"),
 });
 
 type MobileInput = yup.InferType<typeof mobileSchema>;
@@ -49,7 +48,7 @@ export default function Loginpage() {
 
   const userMobileSubmitHandler: SubmitHandler<MobileInput> = async (data) => {
     const { mobile } = data;
-    setStatus("verifyMobile");
+    setStatus("enterPassword");
   };
 
   const userPasswordSubmitHandler: SubmitHandler<PasswordInput> = async (
@@ -98,46 +97,10 @@ export default function Loginpage() {
         </div>
       )}
 
-      {status === "verifyMobile" && (
-        <div className="w-full m-auto p-6 flex flex-col justify-between gap-4 bg-dark-950 rounded-2xl max-w-[392px]">
-          <h2 className="size-body-lg weight-bold text-dark-300">
-            کد تایید جهت ادامه
-          </h2>
-          <div className="flex justify-between items-center weight-regular size-caption-sm">
-            <span className="text-dark-300">
-              به شماره <span className="text-primary-600">۰۹۱۰۰۳۳۲۲۰۲</span>
-              فرستاده شد
-            </span>
-            <span className="text-dark-500">
-              <span className="text-dark-300">
-                <CountdownTimer initialSeconds={60} />
-              </span>
-              تا ارسال مجدد کد تایید
-            </span>
-          </div>
-          <form className="flex flex-col justify-between gap-4">
-            <OTPInput length={6} />
-            <button
-              onClick={() => setStatus("enterPassword")}
-              className="w-full size-caption-lg bg-primary-700 text-dark-300 py-3 rounded-lg 
-               weight-regular transition duration-300 hover:bg-primary-800"
-            >
-              مرحله بعدی
-            </button>
-          </form>
-          <button
-            onClick={() => setStatus("mobileForm")}
-            className="link text-center"
-          >
-            شماره اشتباه است؟ ویرایش کنید!
-          </button>
-        </div>
-      )}
-
       {status === "enterPassword" && (
         <div className="w-full m-auto p-6 flex flex-col justify-between gap-4 bg-dark-950 rounded-2xl max-w-[392px]">
           <h2 className="size-body-lg weight-bold text-dark-300">
-            گزیدن رمز عبور
+            وارد کردن رمز عبور
           </h2>
           <form
             className="flex flex-col justify-between gap-4"
@@ -153,6 +116,7 @@ export default function Loginpage() {
                   placeholder="رمزعبور خود را وارد کنید"
                   {...field}
                   error={passwordErrors.password}
+                  icons={[<AiOutlineEye className="w-6 h-6 fill-dark-400"/>,<AiOutlineEyeInvisible  className="w-6 h-6 fill-dark-400"/>]}
                 />
               )}
             />
@@ -169,7 +133,7 @@ export default function Loginpage() {
             onClick={() => setStatus("mobileForm")}
             className="link text-center"
           >
-            از قبل حساب دارید؟ وارد شوید!
+            شماره تلفن اشتباه است؟ از اینجا تغییر دهید
           </button>
         </div>
       )}
