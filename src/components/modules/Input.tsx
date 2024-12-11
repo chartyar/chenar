@@ -50,14 +50,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
        />
       {error && <span className="size-caption-sm text-error-600">{error.message}</span>}  
       {hint && !error && <span className="size-caption-sm text-dark-500">{hint}</span>}
+
       {
-        type==="password" && icons && (
+        type==="password" ? icons && (
           <span onClick={togglePassword}
           className="absolute left-2 top-3 w-6 h-6 cursor-pointer">
             {!showPassword ? icons[0] : icons[1]}
           </span>
+        ):(
+          icons && <span className="absolute left-2 top-4 w-6 h-6">{icons[0]}</span>
         )
       }
+
     </div>
   );
 });

@@ -4,10 +4,10 @@ import { SubmitHandler, useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import CountdownTimer from "@/components/modules/Countdown";
-import OTPInput from "@/components/modules/OtpInput";
-import { AiOutlineEye,AiOutlineEyeInvisible } from "react-icons/ai";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { LuPhone } from "react-icons/lu";
 
 const mobileSchema = yup.object({
   mobile: yup
@@ -47,8 +47,8 @@ const passwordSchema = yup.object({
   referralCode: yup
     .string()
     .optional()
-    .test('is-5-digits', 'کد معرف باید یک عدد ۵ رقمی باشد', (value) => {
-      if (!value) return true; 
+    .test("is-5-digits", "کد معرف باید یک عدد ۵ رقمی باشد", (value) => {
+      if (!value) return true;
       return /^\d{5}$/.test(value);
     }),
 
@@ -61,6 +61,51 @@ type PasswordInput = yup.InferType<typeof passwordSchema>;
 
 export default function RegisterPage() {
   const [status, setStatus] = useState<string>("mobileForm");
+  const [verifyError, setVerifyError] = useState<boolean>(false);
+  const [mobile, setMobile] = useState<string>("");
+
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  const moveToNext = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    const currentInput = inputsRef.current[index];
+    const maxLength = parseInt(currentInput?.getAttribute("maxLength") || "1");
+    const inputValue = currentInput?.value;
+
+    if (event.key === "Backspace" && inputValue?.length === 0) {
+      if (index > 0) {
+        inputsRef.current[index - 1]?.focus();
+      }
+    } else if (
+      inputValue &&
+      inputValue.length >= maxLength &&
+      event.key !== "Backspace"
+    ) {
+      if (index < inputsRef.current.length - 1) {
+        inputsRef.current[index + 1]?.focus();
+      }
+    }
+  };
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    if (!/^\d*$/.test(value)) {
+      event.target.value = value.replace(/\D/g, ""); // حذف کاراکترهای غیرعددی
+    }
+  };
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const isAllFilled = inputsRef.current.every((input) => input?.value.trim() !== "");
+    if (!isAllFilled) {
+      setVerifyError(true);
+    } else {
+      setVerifyError(false);
+      setStatus("setName")
+    }
+  };
 
   const {
     handleSubmit: handleUserMobileSubmit,
@@ -88,6 +133,7 @@ export default function RegisterPage() {
 
   const userMobileSubmitHandler: SubmitHandler<MobileInput> = async (data) => {
     const { mobile } = data;
+    setMobile(mobile);
     setStatus("verifyMobile");
   };
 
@@ -124,6 +170,7 @@ export default function RegisterPage() {
                   placeholder="شماره تلفن خود را وارد کنید"
                   {...field}
                   error={mobileErrors.mobile}
+                  icons={[<LuPhone className="w-5 h-5 stroke-dark-400" />]}
                 />
               )}
             />
@@ -149,20 +196,30 @@ export default function RegisterPage() {
           </h2>
           <div className="flex justify-between items-center weight-regular size-caption-sm">
             <span className="text-dark-300">
-              به شماره <span className="text-primary-600">۰۹۱۰۰۳۳۲۲۰۲</span>
+              به شماره <span className="text-primary-600">{mobile + " "}</span>
               فرستاده شد
             </span>
-            <span className="text-dark-500">
-              <span className="text-dark-300">
-                <CountdownTimer initialSeconds={60} />
-              </span>
-              تا ارسال مجدد کد تایید
-            </span>
+            <CountdownTimer initialSeconds={120} />
           </div>
-          <form className="flex flex-col justify-between gap-4">
-            <OTPInput length={6} />
-            <button
-              onClick={() => setStatus("setName")}
+          <form className="flex flex-col justify-between gap-4" onSubmit={handleSubmit}>
+            <div className="flex justify-between" dir="ltr">
+              {Array.from({ length: 6 }, (_, index) => (
+                <input
+                  key={index}
+                  ref={(el) => {
+                    inputsRef.current[index] = el;
+                  }}
+                  type="text"
+                  maxLength={1}
+                  inputMode="numeric"
+                  className="w-12 h-12 text-dark-400 text-center rounded-lg outline-none bg-dark-900 size-body-xl weight-regular focus:border-[2px] focus:border-primary-600"
+                  onKeyUp={(event) => moveToNext(index, event)}
+                  onChange={handleInputChange}
+                />
+              ))}
+            </div>
+            {verifyError && <span className="size-caption-sm text-error-600">کد تایید را به درستی وارد کنید</span>}  
+            <button type="submit"
               className="w-full size-caption-lg bg-primary-700 text-dark-300 py-3 rounded-lg 
                weight-regular transition duration-300 hover:bg-primary-800"
             >
@@ -251,7 +308,10 @@ export default function RegisterPage() {
                   placeholder="رمزعبور خود را وارد کنید"
                   {...field}
                   error={passwordErrors.password}
-                  icons={[<AiOutlineEye className="w-6 h-6 fill-dark-400"/>,<AiOutlineEyeInvisible  className="w-6 h-6 fill-dark-400"/>]}
+                  icons={[
+                    <AiOutlineEye className="w-6 h-6 fill-dark-400" />,
+                    <AiOutlineEyeInvisible className="w-6 h-6 fill-dark-400" />,
+                  ]}
                 />
               )}
             />
@@ -266,7 +326,10 @@ export default function RegisterPage() {
                   placeholder="تکرار رمزعبور خود را وارد کنید"
                   {...field}
                   error={passwordErrors.confirmPassword}
-                  icons={[<AiOutlineEye className="w-6 h-6 fill-dark-400"/>,<AiOutlineEyeInvisible  className="w-6 h-6 fill-dark-400"/>]}
+                  icons={[
+                    <AiOutlineEye className="w-6 h-6 fill-dark-400" />,
+                    <AiOutlineEyeInvisible className="w-6 h-6 fill-dark-400" />,
+                  ]}
                 />
               )}
             />
