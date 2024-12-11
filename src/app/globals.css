@@ -10,3 +10,29 @@
 *,*::before,*::after{
     font-family:"Vazirmatn" ;
 }
+
+/************         sweetalert toast             *************/
+
+.toast{
+    z-index: 999999 !important;
+  }
+  .toast_title{
+    font-size: 2rem !important;
+    margin-bottom: 0 !important;
+  }
+  .toast_icon{
+    font-size: 1.8rem !important;
+  }
+  .toast_progress_error{
+    background-color: red !important;
+  }
+  .toast_progress_success{
+    background-color: green !important;
+  }
+  .toast_progress_warning{
+    background-color: green !important;
+  }
+  .toast_text{
+    font-size: 1.3rem !important;
+  }
+  

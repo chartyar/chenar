@@ -8,31 +8,41 @@ import { useRef, useState } from "react";
 import CountdownTimer from "@/components/modules/Countdown";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { LuPhone } from "react-icons/lu";
+import { createUserSchema } from "@/schema/User";
 
 const mobileSchema = yup.object({
-  mobile: yup
+  phone: yup
     .string()
     .required("شماره موبایل الزامی است")
     .matches(/^09[0-9]{9}$/, "شماره موبایل نامعتبر می باشد"),
 });
 
 const nameSchema = yup.object({
-  firstName: yup
+  firstname: yup
     .string()
     .min(3, "نام باید حداقل ۳ حرف باشد")
     .matches(/^[\u0600-\u06FF\s]+$/, "فقط حروف فارسی مجاز است")
     .required("نام الزامی است"),
-  lastName: yup
+  lastname: yup
     .string()
     .min(3, "نام خانوادگی باید حداقل ۳ حرف باشد")
     .matches(/^[\u0600-\u06FF\s]+$/, "فقط حروف فارسی مجاز است")
     .required("نام خانوادگی الزامی است"),
+  email: yup
+    .string()
+    .required(" ایمیل الزامی است")
+    .max(25,"ایمیل نباید بیشتر از ۲۵ کاراکتر باشد")
+    .matches(
+      /^((?=.{1,64}@.{1,255}$)([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}))$/,
+      "ایمیل نا معتبر است"
+    ),
 });
 
 const passwordSchema = yup.object({
   password: yup
     .string()
     .min(8, "رمز عبور باید حداقل ۸ کاراکتر باشد")
+    .max(15, "رمز عبور باید حداکثر ۱۵ کاراکتر باشد")
     .matches(
       /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]+$/,
       "رمز عبور باید شامل حروف و اعداد انگلیسی باشد"
@@ -44,7 +54,7 @@ const passwordSchema = yup.object({
     .oneOf([yup.ref("password")], "رمز عبور و تکرار آن باید یکسان باشد")
     .required("تایید رمز عبور الزامی است"),
 
-  referralCode: yup
+  identificationCode: yup
     .string()
     .optional()
     .test("is-5-digits", "کد معرف باید یک عدد ۵ رقمی باشد", (value) => {
@@ -60,9 +70,16 @@ type NameInput = yup.InferType<typeof nameSchema>;
 type PasswordInput = yup.InferType<typeof passwordSchema>;
 
 export default function RegisterPage() {
-  const [status, setStatus] = useState<string>("mobileForm");
+  const [status, setStatus] = useState<string>("setPhone");
+  const [user, setUser] = useState<createUserSchema>({
+    firstname: "",
+    lastname: "",
+    identificationCode: null,
+    phone: "",
+    email: "",
+    password: "",
+  });
   const [verifyError, setVerifyError] = useState<boolean>(false);
-  const [mobile, setMobile] = useState<string>("");
 
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -89,21 +106,11 @@ export default function RegisterPage() {
     }
   };
 
+  // this function is for verify phone input validation
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     if (!/^\d*$/.test(value)) {
-      event.target.value = value.replace(/\D/g, ""); // حذف کاراکترهای غیرعددی
-    }
-  };
-
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    const isAllFilled = inputsRef.current.every((input) => input?.value.trim() !== "");
-    if (!isAllFilled) {
-      setVerifyError(true);
-    } else {
-      setVerifyError(false);
-      setStatus("setName")
+      event.target.value = value.replace(/\D/g, "");
     }
   };
 
@@ -132,26 +139,57 @@ export default function RegisterPage() {
   });
 
   const userMobileSubmitHandler: SubmitHandler<MobileInput> = async (data) => {
-    const { mobile } = data;
-    setMobile(mobile);
+    const { phone } = data;
+    setUser((prevData) => ({
+      ...prevData,
+      phone,
+    }));
     setStatus("verifyMobile");
   };
 
+  const handleVerifyPhoneSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const isAllFilled = inputsRef.current.every(
+      (input) => input?.value.trim() !== ""
+    );
+    if (!isAllFilled) {
+      setVerifyError(true);
+    } else {
+      setVerifyError(false);
+      setStatus("setName");
+    }
+  };
+
   const userNameSubmitHandler: SubmitHandler<NameInput> = async (data) => {
-    const { firstName, lastName } = data;
+    const { firstname, lastname, email } = data;
+    setUser((prevData) => ({
+      ...prevData,
+      firstname,
+      lastname,
+      email
+    }));
     setStatus("setPassword");
   };
 
   const userPasswordSubmitHandler: SubmitHandler<PasswordInput> = async (
     data
   ) => {
-    const { password, confirmPassword, terms } = data;
+    const { password, confirmPassword, identificationCode, terms } = data;
+    
+    identificationCode ? setUser((prevData) => ({
+      ...prevData,
+      password,
+      identificationCode
+    })):setUser((prevData) => ({
+      ...prevData,
+      password}))
+
     setStatus("setPassword");
   };
 
   return (
     <>
-      {status === "mobileForm" && (
+      {status === "setPhone" && (
         <div className="w-full m-auto p-6 flex flex-col justify-between gap-4 bg-dark-950 rounded-2xl max-w-[392px]">
           <h2 className="size-body-lg weight-bold text-dark-300">
             وارد کردن شماره تلفن
@@ -161,7 +199,7 @@ export default function RegisterPage() {
             onSubmit={handleUserMobileSubmit(userMobileSubmitHandler)}
           >
             <Controller
-              name="mobile"
+              name="phone"
               control={mobileControl}
               defaultValue=""
               render={({ field }) => (
@@ -169,7 +207,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="شماره تلفن خود را وارد کنید"
                   {...field}
-                  error={mobileErrors.mobile}
+                  error={mobileErrors.phone}
                   icons={[<LuPhone className="w-5 h-5 stroke-dark-400" />]}
                 />
               )}
@@ -196,12 +234,16 @@ export default function RegisterPage() {
           </h2>
           <div className="flex justify-between items-center weight-regular size-caption-sm">
             <span className="text-dark-300">
-              به شماره <span className="text-primary-600">{mobile + " "}</span>
+              به شماره{" "}
+              <span className="text-primary-600">{user.phone + " "}</span>
               فرستاده شد
             </span>
             <CountdownTimer initialSeconds={120} />
           </div>
-          <form className="flex flex-col justify-between gap-4" onSubmit={handleSubmit}>
+          <form
+            className="flex flex-col justify-between gap-4"
+            onSubmit={handleVerifyPhoneSubmit}
+          >
             <div className="flex justify-between" dir="ltr">
               {Array.from({ length: 6 }, (_, index) => (
                 <input
@@ -218,8 +260,13 @@ export default function RegisterPage() {
                 />
               ))}
             </div>
-            {verifyError && <span className="size-caption-sm text-error-600">کد تایید را به درستی وارد کنید</span>}  
-            <button type="submit"
+            {verifyError && (
+              <span className="size-caption-sm text-error-600">
+                کد تایید را به درستی وارد کنید
+              </span>
+            )}
+            <button
+              type="submit"
               className="w-full size-caption-lg bg-primary-700 text-dark-300 py-3 rounded-lg 
                weight-regular transition duration-300 hover:bg-primary-800"
             >
@@ -227,7 +274,7 @@ export default function RegisterPage() {
             </button>
           </form>
           <button
-            onClick={() => setStatus("mobileForm")}
+            onClick={() => setStatus("setPhone")}
             className="link text-center"
           >
             شماره اشتباه است؟ ویرایش کنید!
@@ -238,14 +285,14 @@ export default function RegisterPage() {
       {status === "setName" && (
         <div className="w-full m-auto p-6 flex flex-col justify-between gap-4 bg-dark-950 rounded-2xl max-w-[392px]">
           <h2 className="size-body-lg weight-bold text-dark-300">
-            نام و نام خانوادگی
+            اطلاعات شخصی
           </h2>
           <form
             className="flex flex-col justify-between gap-4"
             onSubmit={handleUserNameSubmit(userNameSubmitHandler)}
           >
             <Controller
-              name="firstName"
+              name="firstname"
               control={nameControl}
               defaultValue=""
               render={({ field }) => (
@@ -253,13 +300,13 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="نام خود را وارد کنید"
                   {...field}
-                  error={nameErrors.firstName}
+                  error={nameErrors.firstname}
                 />
               )}
             />
 
             <Controller
-              name="lastName"
+              name="lastname"
               control={nameControl}
               defaultValue=""
               render={({ field }) => (
@@ -267,7 +314,21 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="نام خانوادگی خود را وارد کنید"
                   {...field}
-                  error={nameErrors.lastName}
+                  error={nameErrors.lastname}
+                />
+              )}
+            />
+
+            <Controller
+              name="email"
+              control={nameControl}
+              defaultValue=""
+              render={({ field }) => (
+                <Input
+                  type="text"
+                  placeholder="ایمیل خود را وارد کنید"
+                  {...field}
+                  error={nameErrors.email}
                 />
               )}
             />
@@ -335,7 +396,7 @@ export default function RegisterPage() {
             />
 
             <Controller
-              name="referralCode"
+              name="identificationCode"
               control={passwordControl}
               defaultValue=""
               render={({ field }) => (
@@ -343,7 +404,7 @@ export default function RegisterPage() {
                   type="text"
                   placeholder="کد معرف خود را وارد کنید"
                   {...field}
-                  error={passwordErrors.referralCode}
+                  error={passwordErrors.identificationCode}
                   hint="در صورتی که کد معرف دارید وارد کنید"
                 />
               )}
