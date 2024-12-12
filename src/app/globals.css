@@ -17,11 +17,11 @@
     z-index: 999999 !important;
   }
   .toast_title{
-    font-size: 2rem !important;
+    font-size: 1.4rem !important;
     margin-bottom: 0 !important;
   }
   .toast_icon{
-    font-size: 1.8rem !important;
+    font-size: 1.2rem !important;
   }
   .toast_progress_error{
     background-color: red !important;
@@ -33,6 +33,6 @@
     background-color: green !important;
   }
   .toast_text{
-    font-size: 1.3rem !important;
+    font-size: 0.8rem !important;
   }
   

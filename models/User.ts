@@ -1,7 +1,11 @@
 const mongoose = require("mongoose")
 
 const schema = mongoose.Schema({
-    name:{
+    firstname:{
+        type: String,
+        required: true
+    },
+    lastname:{
         type: String,
         required: true
     },
@@ -17,17 +21,19 @@ const schema = mongoose.Schema({
         type: String,
         required: true
     },
-    IdentificationCode:{
+    identificationCode:{
         type: String,
         required: true
     },
     bonus:{
         type: Number,
-        required: true
+        required: true,
+        default:0
     },
     wallet:{
         type: Number,
-        required: true
+        required: true,
+        default:0
     },
     subUsers:{
         type: [{
@@ -37,11 +43,12 @@ const schema = mongoose.Schema({
     },
     inviter:{
         type: mongoose.Types.ObjectId,
+        ref:"User",
         default: null
     },
-    roles:{
-        type: [String],
-        default:["USER"]
+    role:{
+        type: String,
+        default:"USER"
     },
     permissions:{
         type: [String]

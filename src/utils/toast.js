@@ -8,6 +8,8 @@ const errorToast = Swal.mixin({
         timerProgressBar:"toast_progress_error",
         popup:"toast_text"
     },
+    title:"خطا",
+    icon:"error",
     toast: true,
     position: "top-start",
     showConfirmButton: false,
@@ -30,7 +32,7 @@ const warningToast = Swal.mixin({
     toast: true,
     position: "top-start",
     showConfirmButton: false,
-    timer: 4000,
+    timer: 3000,
     timerProgressBar: true,
     didOpen: (toast) => {
         toast.onmouseenter = Swal.stopTimer;
@@ -46,6 +48,8 @@ const successToast = Swal.mixin({
         timerProgressBar:"toast_progress_success",
         popup:"toast_text"
     },
+    title: "موفق",
+    icon: "success",
     toast: true,
     position: "top-start",
     showConfirmButton: false,
@@ -57,4 +61,4 @@ const successToast = Swal.mixin({
     }
 });
 
-export {errorToast,warningToast,successToast}
+export {errorToast,warningToast,successToast};

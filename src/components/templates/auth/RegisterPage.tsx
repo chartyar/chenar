@@ -9,6 +9,8 @@ import CountdownTimer from "@/components/modules/Countdown";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { LuPhone } from "react-icons/lu";
 import { createUserSchema } from "@/schema/User";
+import { errorToast, successToast } from "@/utils/toast";
+import { useRouter } from "next/navigation";
 
 const mobileSchema = yup.object({
   phone: yup
@@ -31,7 +33,7 @@ const nameSchema = yup.object({
   email: yup
     .string()
     .required(" ایمیل الزامی است")
-    .max(25,"ایمیل نباید بیشتر از ۲۵ کاراکتر باشد")
+    .max(30, "ایمیل نباید بیشتر از ۳۰ کاراکتر باشد")
     .matches(
       /^((?=.{1,64}@.{1,255}$)([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}))$/,
       "ایمیل نا معتبر است"
@@ -62,7 +64,7 @@ const passwordSchema = yup.object({
       return /^\d{5}$/.test(value);
     }),
 
-  terms: yup.boolean().required("پذیرش شرایط و قوانین الزامی است"),
+  // terms: yup.boolean().required("پذیرش شرایط و قوانین الزامی است"),
 });
 
 type MobileInput = yup.InferType<typeof mobileSchema>;
@@ -70,14 +72,13 @@ type NameInput = yup.InferType<typeof nameSchema>;
 type PasswordInput = yup.InferType<typeof passwordSchema>;
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [status, setStatus] = useState<string>("setPhone");
-  const [user, setUser] = useState<createUserSchema>({
+  const [user, setUser] = useState({
     firstname: "",
     lastname: "",
-    identificationCode: null,
     phone: "",
     email: "",
-    password: "",
   });
   const [verifyError, setVerifyError] = useState<boolean>(false);
 
@@ -144,10 +145,31 @@ export default function RegisterPage() {
       ...prevData,
       phone,
     }));
-    setStatus("verifyMobile");
+    const response = await fetch("/api/auth/sms", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({phone}),
+    });
+    if(response.status===200){
+      setStatus("verifyPhone")
+      return successToast.fire({
+        text:"کد از طریق پیامک ارسال شد"
+      })
+    }else if(response.status===409){
+      return errorToast.fire({
+        text:"شماره موبایل وارد شده در سایت ثبت شده است"
+      })
+    }else{
+      return errorToast.fire({
+        text:"خطایی رخ داده لطفا بعدا امتحان کنید"
+      })
+    }
+
   };
 
-  const handleVerifyPhoneSubmit = (event: React.FormEvent) => {
+  const handleVerifyPhoneSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const isAllFilled = inputsRef.current.every(
       (input) => input?.value.trim() !== ""
@@ -155,8 +177,30 @@ export default function RegisterPage() {
     if (!isAllFilled) {
       setVerifyError(true);
     } else {
+      const verificationCode = inputsRef.current.map((input) => input?.value).join("");
       setVerifyError(false);
-      setStatus("setName");
+
+      const response = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({phone:user.phone,code:verificationCode}),
+      });
+      if(response.status===200){
+        setStatus("setName");
+        return successToast.fire({
+          text:"کد وارد شده صحیح است"
+        })
+      }else if(response.status===409){
+        return errorToast.fire({
+          text:"کد وارد شده نادرست است"
+        })
+      }else if(response.status===410){
+        return errorToast.fire({
+          text:"کد وارد شده منقضی شده است"
+        })
+      }
     }
   };
 
@@ -166,7 +210,7 @@ export default function RegisterPage() {
       ...prevData,
       firstname,
       lastname,
-      email
+      email,
     }));
     setStatus("setPassword");
   };
@@ -174,17 +218,63 @@ export default function RegisterPage() {
   const userPasswordSubmitHandler: SubmitHandler<PasswordInput> = async (
     data
   ) => {
-    const { password, confirmPassword, identificationCode, terms } = data;
-    
-    identificationCode ? setUser((prevData) => ({
-      ...prevData,
-      password,
-      identificationCode
-    })):setUser((prevData) => ({
-      ...prevData,
-      password}))
+    const { password, identificationCode } = data;
 
-    setStatus("setPassword");
+    let userInfo:createUserSchema = {
+      firstname:user.firstname,
+      lastname:user.lastname,
+      phone:user.phone,
+      identificationCode,
+      email:user.email,
+      password
+    }
+
+    const response = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userInfo),
+    });
+    if (response.status === 201) {
+      successToast
+        .fire({
+          text: "با موفقیت ثبت نام شدید",
+        })
+        .then(() => router.push("/"));
+    } else if (response.status === 422 && response.statusText === "firstname") {
+      return errorToast.fire({
+        text: "نام خود را به درستی وارد نمایید.",
+      });
+    } else if (response.status === 422 && response.statusText === "lastname") {
+      return errorToast.fire({
+        text: "نام خانوادگی خود را به درستی وارد نمایید.",
+      });
+    } else if (response.status === 422 && response.statusText === "email") {
+      return errorToast.fire({
+        text: "ایمیل خود را صحیح وارد کنید.",
+      });
+    } else if (response.status === 422 && response.statusText === "phone") {
+      return errorToast.fire({
+        text: "شماره موبایل خود را صحیح وارد کنید.",
+      });
+    }else if (response.status === 422 && response.statusText === "identificationCode") {
+      return errorToast.fire({
+        text: "کد معرف نامعتبر است.",
+      });
+    } else if (response.status === 422 && response.statusText === "password") {
+      return errorToast.fire({
+        text: "رمزعبور باید بین ۸ تا ۱۵ کاراکتر باشد و در آن باید از حروف و اعداد انگلیسی استفاده کرد.",
+      });
+    } else if (response.status === 409) {
+      return errorToast.fire({
+        text: "ایمیل قبلا در سایت ثبت شده است.",
+      });
+    } else if (response.status === 401) {
+      return errorToast.fire({
+        text: "شماره تلفن و ایمیل وارد شده در این سایت مسدود است.",
+      });
+    }
   };
 
   return (
@@ -227,7 +317,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {status === "verifyMobile" && (
+      {status === "verifyPhone" && (
         <div className="w-full m-auto p-6 flex flex-col justify-between gap-4 bg-dark-950 rounded-2xl max-w-[392px]">
           <h2 className="size-body-lg weight-bold text-dark-300">
             کد تایید جهت ادامه
@@ -342,7 +432,7 @@ export default function RegisterPage() {
             </button>
           </form>
           <button
-            onClick={() => setStatus("mobileForm")}
+            onClick={() => setStatus("setPhone")}
             className="link text-center"
           >
             شماره تلفن اشتباه بود؟ از اینجا عوض کنید!
@@ -419,10 +509,10 @@ export default function RegisterPage() {
             </button>
           </form>
           <button
-            onClick={() => setStatus("mobileForm")}
+            onClick={() => setStatus("setName")}
             className="link text-center"
           >
-            از قبل حساب دارید؟ وارد شوید!
+          ویرایش اطلاعات شخصی
           </button>
         </div>
       )}
